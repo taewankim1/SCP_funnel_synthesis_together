@@ -58,7 +58,7 @@ class Q_update :
         self.F = F 
         self.G = G
 
-    def solve_w_propagation_error(self,alpha,gamma,xi_neighbor,Qf,Qbar,Ybar) :
+    def solve(self,alpha,gamma,xi_neighbor,Qf,Qbar,Ybar) :
         ix,iu,N,delT = self.ix,self.iu,self.N,self.delT
         iq,ip,iw = self.iq,self.ip,self.iw
 
@@ -170,6 +170,56 @@ class Q_update :
 
         return Qnew,Knew,Ynew,prob.status
 
+    def update_beta(self,Q,K,gamma,alpha) :
+        ix,iu,N,delT = self.ix,self.iu,self.N,self.delT
+        iq,ip,iw = self.iq,self.ip,self.iw
+        
+        beta_hat = np.zeros(N+1)
+        beta_hat[0] = 1
+        beta = np.zeros(N+1)
+        for idx_beta in range(N) :
+            A_cl = self.A[idx_beta] + self.B[idx_beta]@K[idx_beta]
+            C_cl = self.C + self.D@K[idx_beta]
+
+            S0 = np.hstack((A_cl,self.E,self.F[idx_beta])).T@np.linalg.inv(Q[idx_beta+1])@np.hstack((A_cl,self.E,self.F[idx_beta]))
+            # print_np(S0)
+
+            S1 = np.block([[np.linalg.inv(Q[idx_beta]),np.zeros((ix,ip+iw))],
+                        [np.zeros((ip+iw,ix+ip+iw))]])
+            # print_np(S1)
+            S2_tmp = np.block([[C_cl,np.zeros((iq,ip)),self.G],
+                            [np.zeros((ip,ix)),np.eye(ip),np.zeros((ip,iw))]])
+            S2_tmp2 = np.block([[-(gamma[idx_beta]**2)*np.eye(iq),np.zeros((iq,ip))],[np.zeros((ip,iq)),np.eye(iq)]])
+            S2 = S2_tmp.T@S2_tmp2@S2_tmp
+            # print_np(S2)
+            S3 = np.block([[np.zeros((ix+ip,ix+ip+iw))],
+                        [np.zeros((iw,ix+ip)),np.eye(iw)]])
+            # print_np(S3)
+
+            lambda1 = cvx.Variable(1)
+            lambda2 = cvx.Variable(1)
+            lambda3 = cvx.Variable(1)
+
+            constraints = []
+            constraints.append(lambda1 >= 0)
+            constraints.append(lambda2 >= 0)
+            constraints.append(lambda3 >= 0)
+            constraints.append(S0 - lambda1*S1 - lambda2*S2 - lambda3*S3 << 0)
+            cost = lambda1 + lambda3
+
+            prob = cvx.Problem(cvx.Minimize(cost), constraints)
+            prob.solve(solver=cvx.MOSEK)
+            beta_hat[idx_beta+1] = prob.value
+            # print(idx_beta+1, prob.value)
+        for idx_beta in range(N+1) :
+            if idx_beta == 0 :
+                beta[idx_beta] = 1
+            elif idx_beta == 1 :
+                beta[idx_beta] = beta_hat[idx_beta]
+            else :
+                beta[idx_beta] = max(alpha*beta[idx_beta-1],beta_hat[idx_beta])
+
+        return beta
 
 
 
