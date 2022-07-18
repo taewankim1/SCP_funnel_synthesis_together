@@ -188,21 +188,15 @@ def get_sample_trajectory(x0,x0_sample,xnom,unom,Q,Y,model,N,ix,iu,iw,delT,flag_
         wsam.append(wsam_)
     return np.array(tsam),np.array(xsam),np.array(usam),np.array(wsam)
 
-def get_sample_eta_w(Q,num_sample,ix,iw) :
+def get_sample_eta_w(Q,zs_sample,zw_sample) :
     eta_sample = []
     w_sample = []
 
-    for i in range(num_sample) :
-        np.random.seed(i)
-        z = np.random.randn(ix)
-        # np.random.seed(i)
-        z = z / np.linalg.norm(z) # * np.random.uniform(0,1)
-
-        e_s = scipy.linalg.sqrtm(Q)@z
+    for zs,zw in zip(zs_sample,zw_sample):
+        e_s = scipy.linalg.sqrtm(Q)@zs
         eta_sample.append(e_s)
 
-        z = np.random.randn(iw)
-        w_sample.append(z / np.linalg.norm(z) * np.random.uniform(0,1))
+        w_sample.append(zw)
     eta_sample = np.array(eta_sample)
     w_sample = np.array(w_sample)
     return eta_sample,w_sample

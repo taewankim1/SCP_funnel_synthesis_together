@@ -340,19 +340,6 @@ class Single_PTR:
                 print("%-12d%-18.3f%-12.3f%-12.3g%-12.3g%-12.3g%-12.3f%-1d(%2.3g)" % ( iteration+1,self.c+self.cvc+self.ctr,
                     self.c,self.cvc/self.w_vc,self.ctr/self.w_tr,
                     expected,self.w_tr,flag_boundary,bc_error_norm))
-            if flag_boundary == True and  \
-                            self.ctr/self.w_tr < self.tol_tr and self.cvc/self.w_vc < self.tol_vc :
-                # if self.verbosity == True:
-                total_num_iter = iteration+1
-                if self.verbosity == False :
-                    print("iteration   total_cost        cost        ||vc||     ||tr||       reduction   w_tr        bounary")
-                    print("%-12d%-18.3f%-12.3f%-12.3g%-12.3g%-12.3g%-12.3f%-1d(%2.3g)" % ( iteration+1,self.c+self.cvc+self.ctr,
-                        self.c,self.cvc/self.w_vc,self.ctr/self.w_tr,
-                        expected,self.w_tr,flag_boundary,bc_error_norm))
-                print("SUCCEESS: virtual control and trust region < tol")
-                break
-            if iteration == self.maxIter - 1 :
-                total_num_iter = iteration+1
 
         return self.xfwd,self.ufwd,self.xnew,self.unew,total_num_iter,flag_boundary,l,l_vc,l_tr
 

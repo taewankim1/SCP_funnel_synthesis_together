@@ -67,17 +67,19 @@ def plot_traj(x,u,c_list,H_list,xf=None,idx_plot=0) :
     plt.xlabel('X (m)', fontsize = fS)
     plt.ylabel('Y (m)', fontsize = fS)
 
-def plot_traj_set(x,u,c_list,H_list,Q,xi=None,xf=None,xi_margin=None,Qf=None,plt=plt,flag_label=True) :
+def plot_traj_set(x,u,c_list,H_list,Q,xi=None,xf=None,Qi=None,Qf=None,plt=plt,flag_label=True) :
     radius_list,angle_list = get_radius_angle(Q)
 
     fS = 15
     # plt.figure(idx_plot,figsize=(7,7))
     plt.plot(x[:,0], x[:,1],'--',color='tab:orange',alpha=0.8,linewidth=2.0)
     ax=plt.gca()
-    if xi_margin is not None :
-        rec = Rectangle((xi[0]-xi_margin[0],xi[1]-xi_margin[1]),xi_margin[0]*2,xi_margin[1]*2,
-            color='tab:green',alpha=0.5,fill=True,zorder=5)
-        ax.add_patch(rec)
+    if Qi is not None :
+        radius_f,angle_f = get_radius_angle([Qi])
+        for radius,angle in zip(radius_f,angle_f) :
+            ell = Ellipse((xi[0],xi[1]),radius[0]*2,radius[1]*2,angle=np.rad2deg(angle),
+            color='tab:green',alpha=0.5,fill=True)
+            ax.add_patch(ell)
     if Qf is not None :
         radius_f,angle_f = get_radius_angle([Qf])
         for radius,angle in zip(radius_f,angle_f) :
@@ -97,8 +99,8 @@ def plot_traj_set(x,u,c_list,H_list,Q,xi=None,xf=None,xi_margin=None,Qf=None,plt
     if flag_label == True :
         plt.plot(1e3,1e3,'--',color='tab:orange',label="nominal")
         plt.plot(1e3,1e3,'o',markersize=15,color='tab:blue',label="funnel") 
-        plt.plot(1e3,1e3,'s',markersize=15,color='tab:green',label="initial") 
-        plt.plot(1e3,1e3,'o',markersize=15,color='tab:green',label="final") 
+        plt.plot(1e3,1e3,'o',markersize=15,color='tab:green',label="initial and final") 
+        # plt.plot(1e3,1e3,'o',markersize=15,color='tab:green',label="final") 
         plt.plot(1e3,1e3,'o',markersize=15,alpha=0.5,color='tab:red',label="obstacles") 
 
     plt.gca().set_aspect('equal', adjustable='box')

@@ -24,7 +24,7 @@ class Q_update :
         self.ip = ip
         self.iw = iw
         self.N = N
-        self.small = 1e-6
+        self.small = 1e-12
         self.delT = delT
         self.w_tr = w_tr
         self.w_vc = w_vc
@@ -58,7 +58,7 @@ class Q_update :
         self.F = F 
         self.G = G
 
-    def solve(self,alpha,gamma,xi_neighbor,Qf,Qbar,Ybar) :
+    def solve(self,alpha,gamma,Qini,Qf,Qbar,Ybar) :
         ix,iu,N,delT = self.ix,self.iu,self.N,self.delT
         iq,ip,iw = self.iq,self.ip,self.iw
 
@@ -127,10 +127,7 @@ class Q_update :
             
         # initial condition
         Qi = self.Sx@self.Q_list[0]@self.Sx    
-        for xp in xi_neighbor : 
-            tmp1 = cvx.hstack(([[1]],np.expand_dims(self.x[0]-xp,0)))
-            tmp2 = cvx.hstack((np.expand_dims(self.x[0]-xp,1),Qi))
-            constraints.append( cvx.vstack((tmp1,tmp2)) >> 0)
+        constraints.append(Qi >> Qini)
         # final condition
         Qi = self.Sx@self.Q_list[-1]@self.Sx   
         constraints.append(Qi << Qf )

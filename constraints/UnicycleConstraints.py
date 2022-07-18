@@ -26,10 +26,6 @@ class UnicycleConstraints(OptimalcontrolConstraints):
         super().__init__(name,ix,iu)
         self.idx_bc_f = slice(0, ix)
         self.ih = 4
-        self.vmax = 10.0
-        self.vmin = -10.0
-        self.wmax = 10.0
-        self.wmin = -10.0
 
     def set_obstacle(self,c,H) :
         self.c = c
@@ -47,14 +43,6 @@ class UnicycleConstraints(OptimalcontrolConstraints):
         if self.H is not None :
             for c1,H1 in zip(self.c,self.H) :
                 h.append(get_obs_const(c1,H1))
-        # input constraints
-        a = np.expand_dims(np.array([1,0]),1)
-        h.append(np.sqrt(a.T@K@Q@K.T@a) + a.T@u <= self.vmax)
-        h.append(np.sqrt(a.T@K@Q@K.T@a) - a.T@u <= -self.vmin)
-
-        a = np.expand_dims(np.array([0,1]),1)
-        h.append(np.sqrt(a.T@K@Q@K.T@a) + a.T@u <= self.wmax)
-        h.append(np.sqrt(a.T@K@Q@K.T@a) - a.T@u <= -self.wmin)
         return h
 
     def forward_bf(self,x,u,xbar,ubar,Q,K,bf):

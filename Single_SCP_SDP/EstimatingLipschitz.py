@@ -18,7 +18,7 @@ class Lipschitz :
         self.iw = iw
         self.N = N
 
-    def initialize(self,xbar,ubar,xprop,Qbar,Kbar,A,B,C,D,E,F,G,myModel)  :
+    def initialize(self,xbar,ubar,xprop,Qbar,Kbar,A,B,C,D,E,F,G,myModel,zs_sample,zw_sample)  :
         ix,iu,N = self.ix,self.iu,self.N
         ip,iq,iw = self.ip,self.iq,self.iw
 
@@ -50,6 +50,9 @@ class Lipschitz :
         self.G = G
 
         self.myModel = myModel
+        assert len(zs_sample) == len(zw_sample)
+        self.zs_sample = zs_sample
+        self.zw_sample = zw_sample
 
     def update_lipschitz(self,myModel,delT) :
         ix,iu,N = self.ix,self.iu,self.N
@@ -62,8 +65,8 @@ class Lipschitz :
 
         gamma = np.zeros((N))
         for idx in range(N) :
-            num_sample = 100
-            eta_sample,w_sample = get_sample_eta_w(Qbar[idx],num_sample,ix,iw) 
+            eta_sample,w_sample = get_sample_eta_w(Qbar[idx],self.zs_sample,self.zw_sample) 
+            num_sample = len(self.zs_sample)
 
             constraints = []
             Delta_list = []
@@ -121,7 +124,8 @@ class Lipschitz :
         gamma = np.zeros((N))
         for idx in range(N) :
             num_sample = 100
-            eta_sample,w_sample = get_sample_eta_w(Qbar[idx],num_sample,ix,iw) 
+            eta_sample,w_sample = get_sample_eta_w(Qbar[idx],self.zs_sample,self.zw_sample) 
+            num_sample = len(self.zs_sample)
 
             Delta = cvx.Variable((num_sample,ip*iq))
             nu = cvx.Variable((num_sample,ix))
@@ -178,9 +182,8 @@ class Lipschitz :
 
         gamma = np.zeros((N))
         for idx in range(N) :
-            num_sample = 100
-            eta_sample,w_sample = get_sample_eta_w(Qbar[idx],num_sample,ix,iw) 
-
+            eta_sample,w_sample = get_sample_eta_w(Qbar[idx],self.zs_sample,self.zw_sample) 
+            num_sample = len(self.zs_sample)
             gamma_val = []
             xnew_prop = xprop[idx]
             for idx_s in range(num_sample) :
